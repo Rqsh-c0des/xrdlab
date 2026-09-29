@@ -238,7 +238,7 @@ else updates on their next launch.
 **Install on another computer** (once, needs git and Python 3.11):
 
 ```powershell
-git clone https://github.com/<you>/xrdlab.git
+git clone https://github.com/Rqsh-c0des/xrdlab.git
 cd xrdlab
 .\XRDLab.bat        # first run sets everything up, registers .xrdlab/.xrdov files
 ```

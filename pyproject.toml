@@ -4,8 +4,33 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrdlab"
-version = "0.1.0"
-description = "Publication-quality X-ray diffraction figure builder"
+version = "0.2.0"
+description = "Free, open-source X-ray diffraction (XRD / HRXRD) analysis for epitaxial thin films: rocking curves, dislocation density, reciprocal space maps, thickness fringes, FWHM, and publication-quality figures from Panalytical .xrdml files"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Rqsh-c0des"}]
+keywords = [
+    "x-ray diffraction", "xrd", "hrxrd", "high-resolution x-ray diffraction",
+    "rocking curve", "fwhm", "dislocation density", "mosaicity", "tilt", "twist",
+    "reciprocal space map", "rsm", "strain", "relaxation", "thin film", "epitaxy",
+    "pendellosung fringes", "laue fringes", "film thickness", "williamson-hall",
+    "xrdml", "panalytical", "crystallography", "materials science", "gan", "scn",
+    "waterfall plot", "publication figures", "matplotlib", "pyside6",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Environment :: X11 Applications :: Qt",
+]
 requires-python = ">=3.10"
 # Core dependencies keep a base install small and fast to set up. Loading /
 # plotting / peak analysis / FWHM and the bundled phase database all work with just
@@ -27,6 +52,12 @@ mp = [
 ]
 dev = ["pytest>=8.0"]
 build = ["pyinstaller>=6.0"]
+
+[project.urls]
+Homepage = "https://rqsh-c0des.github.io/xrdlab/"
+Source = "https://github.com/Rqsh-c0des/xrdlab"
+Issues = "https://github.com/Rqsh-c0des/xrdlab/issues"
+Documentation = "https://github.com/Rqsh-c0des/xrdlab#readme"
 
 [project.scripts]
 xrdlab-cli = "xrdlab.app:main"

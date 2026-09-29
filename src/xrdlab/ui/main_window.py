@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -374,6 +376,11 @@ class MainWindow(QMainWindow):
         self._auto_update_act.setChecked(bool(config.get_value("auto_update", True)))
         self._auto_update_act.toggled.connect(lambda on: config.set_value("auto_update", on))
         help_menu.addAction(self._auto_update_act)
+        self._auto_restart_act = QAction("&Restart automatically after updating", self)
+        self._auto_restart_act.setCheckable(True)
+        self._auto_restart_act.setChecked(bool(config.get_value("auto_restart", True)))
+        self._auto_restart_act.toggled.connect(lambda on: config.set_value("auto_restart", on))
+        help_menu.addAction(self._auto_restart_act)
         help_menu.addSeparator()
         about = QAction("&About XRDLab", self)
         about.triggered.connect(self._about)
@@ -407,22 +414,136 @@ class MainWindow(QMainWindow):
                          daemon=True).start()
 
     def _on_update_result(self, r: dict, manual: bool) -> None:
+        from xrdlab import config
+
         if r.get("updated"):
-            changes = "\n".join(f"  • {c}" for c in r.get("changes", []))
-            deps = "\nDependencies were updated too." if r.get("deps") else ""
             self.statusBar().showMessage(
                 f"XRDLab updated ({r['from']} → {r['to']}) — restart to use it.", 0)
-            QMessageBox.information(
-                self, "XRDLab updated",
-                f"A new version was installed ({r['n_commits']} change"
-                f"{'s' if r['n_commits'] != 1 else ''}):\n{changes}{deps}\n\n"
-                "Restart XRDLab to use it. Save your work first.")
+            if config.get_value("auto_restart", True):
+                self._restart_countdown(r)
+            else:
+                QMessageBox.information(self, "XRDLab updated",
+                                        self._update_summary(r) + "\n\nRestart XRDLab to "
+                                        "use it (your open work is kept).")
         elif manual:
             msg = r.get("error") or r.get("skipped") or "Up to date."
             if r.get("skipped") == "up to date":
                 msg = "You have the latest version."
             self.statusBar().showMessage(f"Updates: {msg}", 6000)
             QMessageBox.information(self, "Updates", msg)
+
+    @staticmethod
+    def _update_summary(r: dict) -> str:
+        changes = "\n".join(f"  • {c}" for c in r.get("changes", []))
+        deps = "\nDependencies were updated too." if r.get("deps") else ""
+        n = r.get("n_commits", 1)
+        return (f"A new version was installed ({n} change{'s' if n != 1 else ''}):"
+                f"\n{changes}{deps}")
+
+    def _restart_countdown(self, r: dict, seconds: int = 10) -> None:
+        """Non-blocking countdown, then restart into the new version.
+
+        The whole session is carried across the restart (see :meth:`restart_app`),
+        so nothing is lost; *Later* keeps working on the old version until the next
+        launch."""
+        from PySide6.QtCore import QTimer
+
+        box = QMessageBox(self)
+        box.setWindowTitle("XRDLab updated")
+        box.setIcon(QMessageBox.Icon.Information)
+        now = box.addButton("Restart now", QMessageBox.ButtonRole.AcceptRole)
+        box.addButton("Later", QMessageBox.ButtonRole.RejectRole)
+        self._restart_left = seconds
+        summary = self._update_summary(r)
+
+        def text():
+            box.setText(f"{summary}\n\nRestarting in {self._restart_left} s to apply it — "
+                        "your open patterns, labels and settings are carried over.")
+
+        timer = QTimer(box)
+        timer.setInterval(1000)
+
+        def tick():
+            self._restart_left -= 1
+            if self._restart_left <= 0:
+                timer.stop()
+                box.done(0)
+                self.restart_app()
+            else:
+                text()
+
+        def clicked(button):
+            timer.stop()
+            if button is now:
+                self.restart_app()
+            else:
+                self.statusBar().showMessage(
+                    "Update installed — it will be used the next time XRDLab starts.", 0)
+
+        text()
+        timer.timeout.connect(tick)
+        box.buttonClicked.connect(clicked)
+        self._restart_box = box
+        box.show()
+        timer.start()
+
+    def restart_app(self, *, launch: bool = True) -> str:
+        """Save the session, relaunch XRDLab (new code), and quit this instance.
+
+        The session — every pattern with its data, labels, overrides, guides and all
+        settings, including unsaved changes — goes to a restore file that the new
+        instance loads on start (``--restore``); the project path and current tab
+        are kept too. Returns the restore-file path.
+        """
+        import subprocess
+
+        from xrdlab import config, updater
+        from xrdlab.core.project import save_project
+
+        path = config.CONFIG_DIR / "restart_session.xrdlab"
+        data = self._gather_project()
+        data["restart"] = {"project_path": self._project_path,
+                           "tab": self.tabs.currentIndex()}
+        save_project(path, data)
+        if launch:
+            scripts = Path(sys.executable).parent
+            exe = scripts / "XRDLab.exe"
+            if exe.exists():
+                cmd = [str(exe), "--restore", str(path)]
+            else:
+                pyw = scripts / "pythonw.exe"
+                cmd = [str(pyw if pyw.exists() else sys.executable), "-m", "xrdlab.app",
+                       "--restore", str(path)]
+            flags = 0x00000008 | 0x00000200 if os.name == "nt" else 0  # detached
+            subprocess.Popen(cmd, cwd=str(updater.ROOT), creationflags=flags,
+                             close_fds=True)
+            self.close()
+            QApplication.quit()
+        return str(path)
+
+    def restore_session(self, path: str) -> bool:
+        """Load a restore file written by :meth:`restart_app` (then delete it)."""
+        from xrdlab import updater
+        from xrdlab.core.project import load_project
+
+        f = Path(path)
+        try:
+            data = load_project(f)
+        except Exception:  # noqa: BLE001 — a bad restore file must never block launch
+            return False
+        self._apply_project(data)
+        info = data.get("restart") or {}
+        proj = info.get("project_path")
+        if proj and Path(proj).exists():
+            self._project_path = proj
+            self.setWindowTitle(f"XRDLab — {Path(proj).name}")
+        tab = info.get("tab")
+        if isinstance(tab, int) and 0 <= tab < self.tabs.count():
+            self.tabs.setCurrentIndex(tab)
+        f.unlink(missing_ok=True)
+        self.statusBar().showMessage(
+            f"Updated to {updater.version()} — your session was restored.", 8000)
+        return True
 
     def _about(self) -> None:
         from xrdlab import updater
@@ -1761,7 +1882,15 @@ class MainWindow(QMainWindow):
             fig.canvas.draw()  # realise renderer so extents are known
             r = fig.canvas.get_renderer()
             h = fig.bbox.height
-            top_frac = max(a.get_window_extent(r).y1 / h for _l, a, _b in arts)
+            names_top = max(a.get_window_extent(r).y1 for _l, a, _b in arts)
+            if ax.get_title():
+                # Lift the figure title above the guide names so they never collide.
+                above_px = names_top - ax.get_window_extent(r).y1
+                pad_pt = above_px * 72.0 / fig.dpi + 6.0
+                ax.set_title(ax.get_title(), pad=pad_pt, loc="center")
+                fig.canvas.draw()
+                names_top = max(names_top, ax.title.get_window_extent(r).y1)
+            top_frac = names_top / h
             bot_items = [b.get_window_extent(r).y0 / h for _l, _a, b in arts]
             bot_items.append(ax.xaxis.label.get_window_extent(r).y0 / h)
             bot_frac = min(bot_items)

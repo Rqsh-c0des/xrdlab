@@ -1,11 +1,57 @@
-# XRDLab
+# XRDLab — free, open-source XRD & HRXRD analysis for thin films
 
-A desktop app for turning raw X-ray diffraction scans into **publication-ready
-figures** — stacked waterfall plots, Rietveld obs/calc/diff/background panels, and
-Materials Project reference overlays — exported as true vector graphics
-(**PDF / EPS / SVG**) plus PNG.
+**XRDLab is a free, open-source desktop application for X-ray diffraction (XRD) and
+high-resolution X-ray diffraction (HRXRD) analysis of epitaxial thin films.** It reads
+Panalytical `.xrdml` files — 2θ-ω scans, ω rocking curves, φ scans and
+reciprocal-space maps — and produces publication-quality figures and the standard
+thin-film numbers: peak FWHM, threading-dislocation density, mosaic tilt and twist,
+strain and relaxation, film thickness, crystallite size and microstrain.
 
-Built with **PySide6** (native desktop UI) and **matplotlib** (vector export).
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](#setup--one-step)
+[![Website](https://img.shields.io/badge/website-rqsh--c0des.github.io%2Fxrdlab-2ea44f.svg)](https://rqsh-c0des.github.io/xrdlab/)
+
+**Website:** https://rqsh-c0des.github.io/xrdlab/ · **Cite:** see [CITATION.cff](CITATION.cff)
+
+| | |
+|---|---|
+| ![Stacked XRD waterfall plot of a thin-film growth-temperature series with guide lines at the expected reflections](docs/images/xrdlab-waterfall-stacked-xrd-patterns.png) | ![XRD rocking-curve analysis showing FWHM in arcsec, threading-dislocation density and mosaic tilt and twist](docs/images/xrdlab-rocking-curve-dislocation-density-tilt-twist.png) |
+| **Stacked waterfall plots** with guide lines at a material's expected reflections | **Rocking curves** → FWHM, dislocation density, tilt & twist |
+| ![Reciprocal space map in Qx-Qz with substrate and film peaks, strain and degree of relaxation](docs/images/xrdlab-reciprocal-space-map-strain-relaxation.png) | ![Thin-film thickness from Pendellösung / Laue thickness fringes around a Bragg peak](docs/images/xrdlab-thin-film-thickness-laue-fringes.png) |
+| **Reciprocal-space maps** → lattice parameters, strain, relaxation | **Thickness fringes** → film thickness with uncertainty |
+
+*Screenshots use generated demo data.*
+
+## What it does
+
+- **Import** Panalytical `.xrdml` (every scan type, read on its own axis) and
+  `.xy / .dat / .txt / .csv` column files.
+- **Publication figures**: stacked waterfall plots, single scans on log / sqrt /
+  linear axes, Rietveld obs/calc/diff panels, exported as editable vector
+  **PDF, EPS, SVG** or PNG.
+- **Phase identification** against a local database (Materials Project and the
+  Crystallography Open Database), with (hkl) labels and literature citations.
+- **Peak widths (FWHM)** from Kα1/Kα2 doublet-aware pseudo-Voigt fits; Scherrer size;
+  a comparison tab across samples (e.g. a growth-temperature series).
+- **HRXRD**: rocking curves (FWHM in arcsec, Dunn–Kogh dislocation density, mosaic
+  tilt/twist, Williamson–Hall-ω), reciprocal-space maps (Qx–Qz, a∥/a⊥, strain,
+  relaxation), Pendellösung-fringe thickness, Williamson–Hall size/microstrain,
+  φ-scan in-plane symmetry.
+- **Workflow**: save/resume projects, overlay files, undo/redo, crash recovery, and
+  automatic updates on every installed copy.
+
+## Quick start
+
+```powershell
+git clone https://github.com/Rqsh-c0des/xrdlab.git
+cd xrdlab
+.\XRDLab.bat
+```
+
+The first run creates a Python environment and installs everything (needs Python
+3.11 and git); after that it opens instantly and keeps itself up to date. Then
+**File ▸ Open patterns…** (or drag in `.xrdml` files).
 
 ---
 
@@ -383,6 +429,93 @@ pytest                        # run the parser tests
 
 ---
 
+## FAQ
+
+**What is XRDLab?**
+A free, open-source (MIT) desktop program for analysing X-ray diffraction data from
+thin films and making publication-quality XRD figures. It runs on Windows with
+Python 3.11 (PySide6 + matplotlib) and works offline except for optional online
+reference-structure lookups.
+
+**Is XRDLab free to use in research and teaching?**
+Yes. It is MIT-licensed: you can use, modify and share it, including in commercial
+settings, as long as the copyright notice is kept. If it helps your work, please
+cite it ([CITATION.cff](CITATION.cff)).
+
+**How can I open Panalytical `.xrdml` files without the vendor software?**
+Open them in XRDLab (**File ▸ Open patterns…** or drag-and-drop). Coupled 2θ-ω / Gonio
+scans are plotted against 2θ, rocking curves against ω, φ scans against φ, and
+multi-scan area measurements open as reciprocal-space maps. XRDLab also reads
+`.xy`, `.dat`, `.txt` and `.csv` two-column files. XRDLab is independent software and
+is not affiliated with Malvern Panalytical.
+
+**How do I calculate threading-dislocation density from an XRD rocking curve?**
+Load the ω scan and open **HRXRD ▸ Rocking curves**. XRDLab fits the peak, reports the
+FWHM β in arcsec, and applies the Dunn–Kogh mosaic-block estimate
+ρ = β² / (4.35 b²), with β in radians and b the Burgers vector (presets for GaN,
+AlN, InN, ZnO, ScN, TiN, Si, Ge, GaAs, InP, sapphire and 4H-SiC). For wurtzite
+nitrides the symmetric (0002) width gives the screw-type density (b = c) and the
+twist gives the edge-type density (b = a). It is an upper-bound estimate, because
+instrument resolution, wafer curvature and finite domain size also broaden β. You
+can subtract the instrument width in quadrature.
+
+**How do I separate mosaic tilt and twist (screw vs edge dislocations)?**
+Measure rocking curves of a symmetric reflection (χ = 0, e.g. (0002)) and one or more
+skew-symmetric ones (χ > 0, e.g. (101̄2), (101̄1)) and give them the same *Sample*
+name in the rocking-curve table. XRDLab fits β(χ)² = (β_tilt cos χ)² +
+(β_twist sin χ)², reading χ from the file, and reports tilt, twist, and the screw and
+edge densities. With several symmetric orders ((0002), (0004), (0006)) it also runs
+a Williamson–Hall-type analysis, β_ω sinθ/λ against sinθ/λ, giving the tilt and the
+lateral coherence length L∥.
+
+**How do I measure film thickness from XRD thickness fringes?**
+Select a 2θ-ω scan and open **HRXRD ▸ Film thickness from fringes**. For Pendellösung /
+Laue fringes, neighbouring side maxima satisfy t = λ / (2 Δsinθ). XRDLab follows the
+fringe comb outward from the Bragg peak using the exact positions of the Laue
+side maxima, rejects counting-noise wiggles, and reports the thickness with an
+uncertainty and a value for each side of the peak.
+
+**How do I get strain and degree of relaxation from a reciprocal-space map?**
+Open the area-measurement `.xrdml` (it opens automatically in the map tool). Maps
+are converted to Qx = (cos ω − cos(2θ−ω))/λ and Qz = (sin ω + sin(2θ−ω))/λ. The
+substrate and film peaks are located automatically, or you click the film peak. From
+the reflection's (hkl), XRDLab gives the in-plane and out-of-plane lattice
+parameters, the strains ε∥ and ε⊥ against the bulk values, and the relaxation
+R = (a∥,film − a_sub) / (a₀ − a_sub).
+
+**Why is my XRD peak FWHM larger than expected?**
+With a lab Cu source and no monochromator, each reflection is an unresolved
+Kα1 + Kα2 doublet, so a single-peak fit overstates the width. For a ScN (111) film
+it reads 0.182° where the true Kα1 width is 0.128°. XRDLab reads the optics from the
+`.xrdml` file and, unless a hybrid or Ge monochromator was used, fits both lines
+and reports the Kα1 FWHM.
+
+**How do I calculate crystallite size and microstrain?**
+The peak table gives Scherrer sizes, τ = Kλ / (β cosθ), with optional
+instrumental-broadening correction (**Settings ▸ Instrument broadening**).
+**HRXRD ▸ Williamson–Hall** fits β cosθ = Kλ/D + 4ε sinθ over several reflections of
+one phase to separate size (D) and microstrain (ε).
+
+**Can I compare peak widths across a series of samples?**
+Yes. Tick the samples in the pattern list and open the **FWHM** tab. It shows one row
+per sample and one column per reflection (FWHM in ° or arcsec, position, size or
+intensity), with a trend plot drawn against temperature when the sample names
+contain one, and CSV export.
+
+**How does XRDLab compare with commercial XRD software?**
+Commercial suites such as Malvern Panalytical's HighScore and Epitaxy do things
+XRDLab does not: full search-match against the ICDD PDF database, dynamical-
+diffraction simulation and fitting of multilayer rocking curves, and full Rietveld
+refinement (XRDLab displays Rietveld results from other programs). XRDLab is a free,
+scriptable, open-source tool for the everyday thin-film analyses above, and for
+producing consistent, publication-ready figures.
+
+**How do I cite XRDLab?**
+Use the "Cite this repository" button on GitHub, or the metadata in
+[CITATION.cff](CITATION.cff).
+
+---
+
 ## Project layout
 
 ```
@@ -417,3 +550,9 @@ tests/        parser / FWHM / HRXRD / project / updater / startup tests
 - XRR reflectivity mode (log-scale, thin-film fringes) — parser is structured for it.
 - Le Bail / full-pattern fitting building on the pseudo-Voigt single-peak fitter.
 - Trained ML peak labelling / phase identification against MP references.
+
+## License
+
+[MIT](LICENSE) © 2026 Rqsh-c0des and XRDLab contributors. XRDLab is independent
+software, not affiliated with or endorsed by Malvern Panalytical; "Panalytical",
+"HighScore", "Epitaxy" and "Empyrean" are trademarks of their respective owners.

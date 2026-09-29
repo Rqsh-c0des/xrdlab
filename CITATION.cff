@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use XRDLab in your research, please cite it as below."
+title: "XRDLab: open-source X-ray diffraction (XRD) and high-resolution XRD analysis for epitaxial thin films"
+abstract: >-
+  XRDLab is a free, open-source desktop application for analysing X-ray
+  diffraction data from thin films and producing publication-quality figures.
+  It reads Panalytical .xrdml files (2θ-ω scans, ω rocking curves, φ scans and
+  reciprocal-space maps) and provides stacked waterfall plots, phase
+  identification, doublet-aware peak widths (FWHM), rocking-curve analysis with
+  threading-dislocation density and mosaic tilt/twist, reciprocal-space-map
+  strain and relaxation, thickness from Pendellösung (Laue) fringes,
+  Williamson–Hall analysis, and vector (PDF/EPS/SVG) export.
+type: software
+authors:
+  - alias: Rqsh-c0des
+license: MIT
+repository-code: "https://github.com/Rqsh-c0des/xrdlab"
+url: "https://rqsh-c0des.github.io/xrdlab/"
+version: 0.2.0
+date-released: "2026-09-29"
+keywords:
+  - X-ray diffraction
+  - XRD
+  - high-resolution X-ray diffraction
+  - HRXRD
+  - rocking curve
+  - reciprocal space map
+  - thin films
+  - epitaxy
+  - dislocation density
+  - Pendellösung fringes
+  - xrdml
+  - materials science

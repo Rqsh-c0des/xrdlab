@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rqsh-c0des.github.io/xrdlab/sitemap.xml

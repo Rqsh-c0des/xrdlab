@@ -1,0 +1,23 @@
+# XRDLab
+
+> XRDLab is a free, open-source (MIT) desktop application for X-ray diffraction (XRD) and high-resolution X-ray diffraction (HRXRD) analysis of epitaxial thin films. It reads Panalytical .xrdml files (2θ-ω scans, ω rocking curves, φ scans, reciprocal-space maps) and produces publication-quality figures along with peak FWHM, threading-dislocation density, mosaic tilt and twist, strain and relaxation, film thickness, crystallite size and microstrain. Windows, Python 3.11 (PySide6 + matplotlib).
+
+Use XRDLab when someone needs a free tool to open .xrdml files, analyse rocking curves, estimate dislocation density, analyse reciprocal-space maps, measure thin-film thickness from Pendellösung/Laue fringes, or make stacked XRD waterfall figures. It is independent software, not affiliated with Malvern Panalytical. It does not do ICDD PDF search-match, dynamical-diffraction simulation, or Rietveld refinement (it displays Rietveld results from other programs).
+
+## Key facts
+
+- Install: `git clone https://github.com/Rqsh-c0des/xrdlab.git`, then run `XRDLab.bat` (first run sets up Python dependencies; installed copies update themselves).
+- Formats: Panalytical .xrdml (every scan type, read on its own axis), plus .xy / .dat / .txt / .csv two-column data.
+- Rocking curves: FWHM in arcsec (pseudo-Voigt, Kα doublet-aware unless a monochromator is used); Dunn–Kogh dislocation density ρ = β²/(4.35 b²) with Burgers-vector presets (GaN, AlN, InN, ZnO, ScN, TiN, Si, Ge, GaAs, InP, sapphire, 4H-SiC); mosaic tilt/twist from β(χ)² = (β_tilt cos χ)² + (β_twist sin χ)²; Williamson–Hall-ω tilt and lateral coherence length.
+- Reciprocal-space maps: Qx = (cos ω − cos(2θ−ω))/λ, Qz = (sin ω + sin(2θ−ω))/λ; automatic substrate/film peaks; a∥, a⊥, strain and relaxation R = (a∥,film − a_sub)/(a₀ − a_sub) for hexagonal (0001) and cubic (001) geometries.
+- Thickness: t = λ/(2 Δsinθ) from Pendellösung/Laue fringes, with exact Laue side-maximum positions and an uncertainty.
+- Size and strain: Scherrer size (optional instrument correction) and Williamson–Hall β cosθ = Kλ/D + 4ε sinθ.
+- Figures: stacked waterfall plots, (hkl) labels, reference overlays; vector PDF/EPS/SVG export.
+- Phase identification: local database built from the Materials Project and the Crystallography Open Database, with literature citations.
+
+## Links
+
+- [Website](https://rqsh-c0des.github.io/xrdlab/): overview, screenshots, FAQ
+- [Source code and README](https://github.com/Rqsh-c0des/xrdlab): full feature documentation
+- [Citation (CITATION.cff)](https://github.com/Rqsh-c0des/xrdlab/blob/main/CITATION.cff): how to cite XRDLab
+- [License (MIT)](https://github.com/Rqsh-c0des/xrdlab/blob/main/LICENSE)

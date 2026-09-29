@@ -1,0 +1,30 @@
+# Environment / secrets
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+*.spec
+!xrdlab.spec
+
+# App caches / outputs
+.xrdlab_cache/
+examples/out/
+*.pdf
+*.eps
+*.svg
+*.png
+!docs/**/*.png
+
+# Local-only
+importtime.txt
+
+# Real measurement data stays local (unpublished research) - not in the public repo
+tests/data/
+files_to_publish.txt

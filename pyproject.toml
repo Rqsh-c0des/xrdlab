@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xrdlab"
+version = "0.1.0"
+description = "Publication-quality X-ray diffraction figure builder"
+requires-python = ">=3.10"
+# Core dependencies keep a base install small and fast to set up. Loading /
+# plotting / peak analysis / FWHM and the bundled phase database all work with just
+# these. The Materials Project + pymatgen stack (structure simulation, CIF import,
+# database seeding) is a heavy optional extra — see [mp] below.
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "matplotlib>=3.8",
+    "PySide6>=6.6",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# Structure simulation, Materials Project overlays, CIF import, DB seeding.
+mp = [
+    "mp-api>=0.41",
+    "pymatgen>=2024.3",
+]
+dev = ["pytest>=8.0"]
+build = ["pyinstaller>=6.0"]
+
+[project.scripts]
+xrdlab-cli = "xrdlab.app:main"
+
+# Windowless launcher: pip generates .venv\Scripts\XRDLab.exe. Windows names the app
+# after this exe ("XRDLab"), and tools/register_filetypes.py points .xrdlab / .xrdov
+# double-clicks at it (it forwards the file path to the app).
+[project.gui-scripts]
+XRDLab = "xrdlab.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
